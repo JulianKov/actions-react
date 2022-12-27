@@ -1,22 +1,25 @@
-name: Enviroment
-on:
-  push:
-  workflow_dispatch:
-env:
-  NODE_ENV: production
-  GH_SECRET: 42
+name: Build and Deploy
+on: [push, workflow_dispatch]
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Print Env Build
-        run: |
-          echo "${{ env.NODE_ENV }}"
-          echo "${{ env.GH_SECRET }}"
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Install deps
+        run: npm ci
+      - name: Build project
+        run: npm run build
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          path: build
+          name: build-files
   deploy:
+    needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Print Env Deploy
-        run: |
-          echo "${{ env.NODE_ENV }}"
-          echo "${{ env.GH_SECRET }}"
+      - name: Get build project
+        uses: actions/download-artifact@v3
+        with:
+          name: build-files
